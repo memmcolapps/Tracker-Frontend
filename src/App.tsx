@@ -11,7 +11,6 @@ import Sims from "@/pages/sims";
 import Users from "@/pages/users";
 import Analytics from "@/pages/analytics";
 import Reports from "@/pages/reports";
-import Settings from "@/pages/settings";
 import MainLayout from "@/components/layout/main-layout";
 
 function Router() {
@@ -25,7 +24,6 @@ function Router() {
         <Route path="/users" component={Users} />
         <Route path="/analytics" component={Analytics} />
         <Route path="/reports" component={Reports} />
-        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>

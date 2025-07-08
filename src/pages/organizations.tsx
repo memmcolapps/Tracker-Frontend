@@ -180,7 +180,7 @@ export default function Organizations() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Organizations</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Organizations</h3>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
           Add Organization

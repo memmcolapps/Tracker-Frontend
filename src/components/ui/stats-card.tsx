@@ -34,13 +34,13 @@ export function StatsCard({
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-semibold text-foreground">{value}</p>
-            {change && (
-              <p className={`text-sm ${getChangeColor(changeType)}`}>
+            <p className="text-xs font-medium text-muted-foreground">{title}</p>
+            <p className="text-lg font-semibold text-foreground">{value}</p>
+            {/* {change && (
+              <p className={`text-xs ${getChangeColor(changeType)}`}>
                 {change}
               </p>
-            )}
+            )} */}
           </div>
           <div className={`p-3 bg-gray-100 rounded-lg ${iconColor}`}>
             <Icon className="w-6 h-6" />

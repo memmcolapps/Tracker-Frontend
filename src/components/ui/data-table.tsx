@@ -30,10 +30,10 @@ interface DataTableProps<T> {
 export function DataTable<T extends Record<string, any>>({
   data,
   columns,
-  pagination
+  pagination,
 }: DataTableProps<T>) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
+    <div className="bg-white ">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -50,10 +50,9 @@ export function DataTable<T extends Record<string, any>>({
               <TableRow key={index}>
                 {columns.map((column) => (
                   <TableCell key={String(column.key)}>
-                    {column.render 
+                    {column.render
                       ? column.render(row[column.key], row)
-                      : row[column.key]
-                    }
+                      : row[column.key]}
                   </TableCell>
                 ))}
               </TableRow>
@@ -61,43 +60,60 @@ export function DataTable<T extends Record<string, any>>({
           </TableBody>
         </Table>
       </div>
-      
+
       {pagination && (
         <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing <span className="font-medium">{((pagination.currentPage - 1) * pagination.itemsPerPage) + 1}</span> to{' '}
+            <div className="text-xs text-gray-700">
+              Showing{" "}
               <span className="font-medium">
-                {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)}
-              </span> of{' '}
-              <span className="font-medium">{pagination.totalItems}</span> results
+                {(pagination.currentPage - 1) * pagination.itemsPerPage + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium">
+                {Math.min(
+                  pagination.currentPage * pagination.itemsPerPage,
+                  pagination.totalItems
+                )}
+              </span>{" "}
+              of <span className="font-medium">{pagination.totalItems}</span>{" "}
+              results
             </div>
             <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage - 1)
+                }
                 disabled={pagination.currentPage === 1}
               >
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Previous
               </Button>
-              
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+
+              {Array.from(
+                { length: pagination.totalPages },
+                (_, i) => i + 1
+              ).map((page) => (
                 <Button
                   key={page}
-                  variant={page === pagination.currentPage ? "default" : "outline"}
+                  variant={
+                    page === pagination.currentPage ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => pagination.onPageChange(page)}
                 >
                   {page}
                 </Button>
               ))}
-              
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage + 1)
+                }
                 disabled={pagination.currentPage === pagination.totalPages}
               >
                 Next

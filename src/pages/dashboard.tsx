@@ -204,9 +204,7 @@ export default function Dashboard() {
         {/* Quick Actions Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">
-              Quick Actions
-            </CardTitle>
+            <CardTitle className=" font-semibold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -225,18 +223,10 @@ export default function Dashboard() {
               <Button
                 className="w-full justify-center"
                 variant="default"
-                style={{ backgroundColor: "#FF9800" }}
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                Register SIM
-              </Button>
-              <Button
-                className="w-full justify-center"
-                variant="default"
                 style={{ backgroundColor: "#424242" }}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Add User
+                Add Admin
               </Button>
             </div>
           </CardContent>

@@ -6,7 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { StatsCard } from "@/components/ui/stats-card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Upload, Smartphone, Circle } from "lucide-react";
+import { Plus, Upload, Smartphone, Circle, Eye, Pencil, UserPlus, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export interface Device {
   id: number;
@@ -94,8 +101,8 @@ export default function Devices() {
             />
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{value}</div>
-            <div className="text-sm text-gray-500">IMEI: {row.imei}</div>
+            <div className="text-xs font-medium text-gray-900">{value}</div>
+            <div className="text-xs text-gray-500">IMEI: {row.imei}</div>
           </div>
         </div>
       ),
@@ -151,30 +158,34 @@ export default function Devices() {
     {
       key: "id" as keyof Device,
       label: "Actions",
-      render: () => (
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:text-blue-700"
-          >
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-orange-600 hover:text-orange-700"
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600 hover:text-gray-700"
-          >
-            Assign
-          </Button>
-        </div>
+      render: (value: number, row: Device) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-sidebar-foreground focus:outline-none focus:ring-0 hover:bg-transparent hover:text-sidebar-foreground"
+              style={{ boxShadow: "none", background: "none" }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-more-vertical"><circle cx="9" cy="4" r="1"/><circle cx="9" cy="9" r="1"/><circle cx="9" cy="14" r="1"/></svg>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => alert(`View device ${row.label}`)}>
+              <Eye className="w-4 h-4 mr-2" /> View
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => alert(`Edit device ${row.label}`)}>
+              <Pencil className="w-4 h-4 mr-2" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => alert(`Assign device ${row.label}`)}>
+              <UserPlus className="w-4 h-4 mr-2" /> Assign
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600" onSelect={() => alert(`Delete device ${row.label}`)}>
+              <Trash2 className="w-4 h-4 mr-2" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
@@ -212,10 +223,10 @@ export default function Devices() {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-gray-800">Devices</h3>
         <div className="flex items-center space-x-3">
-          <Button variant="secondary">
+          {/* <Button variant="secondary">
             <Upload className="w-4 h-4 mr-2" />
             Bulk Import
-          </Button>
+          </Button> */}
           <Button>
             <Plus className="w-4 h-4 mr-2" />
             Add Device
@@ -260,13 +271,6 @@ export default function Devices() {
                 <Checkbox />
                 <span className="text-sm text-gray-600">Select All</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:text-blue-700"
-              >
-                Bulk Actions
-              </Button>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
