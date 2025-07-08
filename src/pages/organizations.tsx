@@ -5,23 +5,78 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Plus, Building, Upload } from "lucide-react";
-import type { Organization } from "@shared/schema";
+
+export interface Organization {
+  id: number;
+  name: string;
+  email: string;
+  status: string;
+  createdAt: Date;
+  lastActive: Date;
+}
 
 export default function Organizations() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data: organizations, isLoading } = useQuery({
-    queryKey: ['/api/organizations'],
-  });
+  // Mock data for organizations
+  const [organizations] = useState<Organization[]>([
+    {
+      id: 1,
+      name: "Acme Corp",
+      email: "info@acme.com",
+      status: "active",
+      createdAt: new Date("2023-01-15"),
+      lastActive: new Date("2024-06-01"),
+    },
+    {
+      id: 2,
+      name: "Globex Inc",
+      email: "contact@globex.com",
+      status: "inactive",
+      createdAt: new Date("2022-11-10"),
+      lastActive: new Date("2024-05-20"),
+    },
+    {
+      id: 3,
+      name: "Umbrella LLC",
+      email: "admin@umbrella.com",
+      status: "suspended",
+      createdAt: new Date("2023-03-05"),
+      lastActive: new Date("2024-04-18"),
+    },
+    {
+      id: 4,
+      name: "Wayne Enterprises",
+      email: "hello@wayne.com",
+      status: "active",
+      createdAt: new Date("2023-02-22"),
+      lastActive: new Date("2024-06-02"),
+    },
+    {
+      id: 5,
+      name: "Stark Industries",
+      email: "support@stark.com",
+      status: "active",
+      createdAt: new Date("2023-05-30"),
+      lastActive: new Date("2024-06-03"),
+    },
+  ]);
+  const isLoading = false;
 
   const columns = [
     {
-      key: 'name' as keyof Organization,
-      label: 'Organization',
+      key: "name" as keyof Organization,
+      label: "Organization",
       render: (value: string, row: Organization) => (
         <div className="flex items-center">
           <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -35,13 +90,13 @@ export default function Organizations() {
       ),
     },
     {
-      key: 'status' as keyof Organization,
-      label: 'Status',
+      key: "status" as keyof Organization,
+      label: "Status",
       render: (value: string) => <StatusBadge status={value} />,
     },
     {
-      key: 'id' as keyof Organization,
-      label: 'Devices',
+      key: "id" as keyof Organization,
+      label: "Devices",
       render: () => (
         <div>
           <div className="text-sm font-medium text-gray-900">247</div>
@@ -50,8 +105,8 @@ export default function Organizations() {
       ),
     },
     {
-      key: 'id' as keyof Organization,
-      label: 'Users',
+      key: "id" as keyof Organization,
+      label: "Users",
       render: () => (
         <div>
           <div className="text-sm font-medium text-gray-900">18</div>
@@ -60,27 +115,41 @@ export default function Organizations() {
       ),
     },
     {
-      key: 'createdAt' as keyof Organization,
-      label: 'Created',
-      render: (value: Date) => value ? new Date(value).toLocaleDateString() : '-',
+      key: "createdAt" as keyof Organization,
+      label: "Created",
+      render: (value: Date) =>
+        value ? new Date(value).toLocaleDateString() : "-",
     },
     {
-      key: 'lastActive' as keyof Organization,
-      label: 'Last Active',
-      render: (value: Date) => value ? new Date(value).toLocaleDateString() : '-',
+      key: "lastActive" as keyof Organization,
+      label: "Last Active",
+      render: (value: Date) =>
+        value ? new Date(value).toLocaleDateString() : "-",
     },
     {
-      key: 'id' as keyof Organization,
-      label: 'Actions',
+      key: "id" as keyof Organization,
+      label: "Actions",
       render: () => (
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary hover:text-blue-700"
+          >
             View
           </Button>
-          <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-orange-600 hover:text-orange-700"
+          >
             Edit
           </Button>
-          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700"
+          >
             Delete
           </Button>
         </div>
@@ -105,7 +174,8 @@ export default function Organizations() {
 
   const totalPages = Math.ceil((organizations?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = organizations?.slice(startIndex, startIndex + itemsPerPage) || [];
+  const paginatedData =
+    organizations?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   return (
     <div className="p-6">
@@ -122,7 +192,12 @@ export default function Organizations() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
+              <Label
+                htmlFor="status"
+                className="text-sm font-medium text-gray-700"
+              >
+                Status
+              </Label>
               <Select>
                 <SelectTrigger>
                   <SelectValue placeholder="All Status" />
@@ -136,11 +211,21 @@ export default function Organizations() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="date" className="text-sm font-medium text-gray-700">Created Date</Label>
+              <Label
+                htmlFor="date"
+                className="text-sm font-medium text-gray-700"
+              >
+                Created Date
+              </Label>
               <Input type="date" />
             </div>
             <div>
-              <Label htmlFor="devices" className="text-sm font-medium text-gray-700">Device Count</Label>
+              <Label
+                htmlFor="devices"
+                className="text-sm font-medium text-gray-700"
+              >
+                Device Count
+              </Label>
               <Select>
                 <SelectTrigger>
                   <SelectValue placeholder="All" />
@@ -154,7 +239,12 @@ export default function Organizations() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="search" className="text-sm font-medium text-gray-700">Search</Label>
+              <Label
+                htmlFor="search"
+                className="text-sm font-medium text-gray-700"
+              >
+                Search
+              </Label>
               <Input type="text" placeholder="Search organizations..." />
             </div>
           </div>

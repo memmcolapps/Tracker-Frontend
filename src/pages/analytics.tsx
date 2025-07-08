@@ -1,8 +1,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UsageChart } from "@/components/charts/usage-chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Download } from "lucide-react";
 import { mockChartData, networkProviders, systemHealth } from "@/lib/mock-data";
 
@@ -56,7 +70,12 @@ export default function Analytics() {
             <CardTitle>Data Usage Over Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <UsageChart data={mockChartData.dataUsageWeekly} />
+            <UsageChart
+              data={mockChartData.dataUsageWeekly.map(({ week, usage }) => ({
+                month: week,
+                usage,
+              }))}
+            />
           </CardContent>
         </Card>
       </div>
@@ -70,16 +89,24 @@ export default function Analytics() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">TechCorp Solutions</span>
-                <span className="text-sm font-medium text-gray-800">247 devices</span>
+                <span className="text-sm text-gray-600">
+                  TechCorp Solutions
+                </span>
+                <span className="text-sm font-medium text-gray-800">
+                  247 devices
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Global Industries</span>
-                <span className="text-sm font-medium text-gray-800">156 devices</span>
+                <span className="text-sm font-medium text-gray-800">
+                  156 devices
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">StartupXYZ</span>
-                <span className="text-sm font-medium text-gray-800">45 devices</span>
+                <span className="text-sm font-medium text-gray-800">
+                  45 devices
+                </span>
               </div>
             </div>
           </CardContent>
@@ -94,7 +121,9 @@ export default function Analytics() {
               {networkProviders.map((provider, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{provider.name}</span>
-                  <span className="text-sm font-medium text-gray-800">{provider.percentage}%</span>
+                  <span className="text-sm font-medium text-gray-800">
+                    {provider.percentage}%
+                  </span>
                 </div>
               ))}
             </div>
@@ -110,9 +139,13 @@ export default function Analytics() {
               {systemHealth.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{item.metric}</span>
-                  <span className={`text-sm font-medium ${
-                    item.status === 'success' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span
+                    className={`text-sm font-medium ${
+                      item.status === "success"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
                     {item.value}
                   </span>
                 </div>

@@ -4,21 +4,49 @@ import { Button } from "@/components/ui/button";
 import { StatsCard } from "@/components/ui/stats-card";
 import { DeviceStatusChart } from "@/components/charts/device-status-chart";
 import { UsageChart } from "@/components/charts/usage-chart";
-import { 
-  Smartphone, 
-  Building, 
-  Users, 
+import {
+  Smartphone,
+  Building,
+  Users,
   BarChart3,
   Plus,
   UserPlus,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import { mockChartData } from "@/lib/mock-data";
 
 export default function Dashboard() {
-  const { data: analytics, isLoading } = useQuery({
-    queryKey: ['/api/analytics/dashboard'],
-  });
+  // Mock analytics data
+  const analytics = {
+    totalDevices: 120,
+    totalOrganizations: 8,
+    totalUsers: 45,
+    totalDataUsage: 32000,
+    deviceStats: { online: 90, offline: 25, error: 5 },
+    recentActivity: [
+      {
+        type: "device",
+        message: "Device A added",
+        time: Date.now() - 1000 * 60 * 10,
+      },
+      {
+        type: "user",
+        message: "User John registered",
+        time: Date.now() - 1000 * 60 * 30,
+      },
+      {
+        type: "organization",
+        message: "Org XYZ created",
+        time: Date.now() - 1000 * 60 * 60,
+      },
+      {
+        type: "error",
+        message: "Device B error reported",
+        time: Date.now() - 1000 * 60 * 120,
+      },
+    ],
+  };
+  const isLoading = false;
 
   if (isLoading) {
     return (
@@ -36,7 +64,11 @@ export default function Dashboard() {
     );
   }
 
-  const deviceStats = analytics?.deviceStats || { online: 0, offline: 0, error: 0 };
+  const deviceStats = analytics?.deviceStats || {
+    online: 0,
+    offline: 0,
+    error: 0,
+  };
 
   return (
     <div className="p-6">
@@ -81,7 +113,9 @@ export default function Dashboard() {
         {/* Device Status Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-lg font-semibold">Device Status</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Device Status
+            </CardTitle>
             <Button variant="ghost" size="sm" className="text-primary">
               View Details
             </Button>
@@ -94,14 +128,18 @@ export default function Dashboard() {
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className="text-sm text-muted-foreground">Online</span>
                 </div>
-                <span className="text-sm font-medium">{deviceStats.online}</span>
+                <span className="text-sm font-medium">
+                  {deviceStats.online}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                   <span className="text-sm text-muted-foreground">Offline</span>
                 </div>
-                <span className="text-sm font-medium">{deviceStats.offline}</span>
+                <span className="text-sm font-medium">
+                  {deviceStats.offline}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
@@ -117,31 +155,48 @@ export default function Dashboard() {
         {/* Recent Activity Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Recent Activity
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4 max-h-64 overflow-y-auto">
-              {analytics?.recentActivity?.map((activity: any, index: number) => (
-                <div key={index} className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    activity.type === 'device' ? 'bg-green-100' :
-                    activity.type === 'user' ? 'bg-blue-100' :
-                    activity.type === 'organization' ? 'bg-orange-100' :
-                    'bg-red-100'
-                  }`}>
-                    {activity.type === 'device' && <Plus className="w-4 h-4 text-green-600" />}
-                    {activity.type === 'user' && <UserPlus className="w-4 h-4 text-blue-600" />}
-                    {activity.type === 'organization' && <Building className="w-4 h-4 text-orange-600" />}
-                    {activity.type === 'error' && <span className="text-red-600">!</span>}
+              {analytics?.recentActivity?.map(
+                (activity: any, index: number) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        activity.type === "device"
+                          ? "bg-green-100"
+                          : activity.type === "user"
+                          ? "bg-blue-100"
+                          : activity.type === "organization"
+                          ? "bg-orange-100"
+                          : "bg-red-100"
+                      }`}
+                    >
+                      {activity.type === "device" && (
+                        <Plus className="w-4 h-4 text-green-600" />
+                      )}
+                      {activity.type === "user" && (
+                        <UserPlus className="w-4 h-4 text-blue-600" />
+                      )}
+                      {activity.type === "organization" && (
+                        <Building className="w-4 h-4 text-orange-600" />
+                      )}
+                      {activity.type === "error" && (
+                        <span className="text-red-600">!</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(activity.time).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(activity.time).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           </CardContent>
         </Card>
@@ -149,7 +204,9 @@ export default function Dashboard() {
         {/* Quick Actions Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Quick Actions
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -157,15 +214,27 @@ export default function Dashboard() {
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Device
               </Button>
-              <Button className="w-full justify-center" variant="default" style={{ backgroundColor: '#4CAF50' }}>
+              <Button
+                className="w-full justify-center"
+                variant="default"
+                style={{ backgroundColor: "#4CAF50" }}
+              >
                 <Building className="w-4 h-4 mr-2" />
                 Create Organization
               </Button>
-              <Button className="w-full justify-center" variant="default" style={{ backgroundColor: '#FF9800' }}>
+              <Button
+                className="w-full justify-center"
+                variant="default"
+                style={{ backgroundColor: "#FF9800" }}
+              >
                 <CreditCard className="w-4 h-4 mr-2" />
                 Register SIM
               </Button>
-              <Button className="w-full justify-center" variant="default" style={{ backgroundColor: '#424242' }}>
+              <Button
+                className="w-full justify-center"
+                variant="default"
+                style={{ backgroundColor: "#424242" }}
+              >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
@@ -177,7 +246,9 @@ export default function Dashboard() {
       {/* Usage Analytics */}
       <Card className="mt-8">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-lg font-semibold">Usage Analytics</CardTitle>
+          <CardTitle className="text-lg font-semibold">
+            Usage Analytics
+          </CardTitle>
           <div className="flex items-center space-x-2">
             <select className="border border-gray-300 rounded px-3 py-1 text-sm">
               <option>Last 7 days</option>
