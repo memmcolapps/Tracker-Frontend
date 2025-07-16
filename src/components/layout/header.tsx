@@ -1,7 +1,7 @@
-import { Search, Bell, ChevronRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { LogOut, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
 
 const pageNames: Record<string, string> = {
   "/": "Dashboard",
@@ -17,12 +17,20 @@ const pageNames: Record<string, string> = {
 export default function Header() {
   const [location] = useLocation();
   const currentPage = pageNames[location] || "Dashboard";
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    console.log("User logged out!");
+  };
 
   return (
     <header className="bg-background shadow-sm border-b border-border px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-semibold text-foreground">{currentPage}</h2>
+          <h2 className="text-2xl font-semibold text-foreground">
+            {currentPage}
+          </h2>
           <nav className="text-sm flex items-center">
             <span className="text-muted-foreground">Home</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground mx-2" />
@@ -30,24 +38,14 @@ export default function Header() {
           </nav>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Search..." 
-              className="w-64 pl-10"
-            />
-          </div>
-          {/* Notifications */}
-          <div className="relative">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Logout</span>
+          </Button>
         </div>
       </div>
     </header>

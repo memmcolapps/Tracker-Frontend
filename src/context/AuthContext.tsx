@@ -10,7 +10,6 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { AxiosError } from "axios";
 
 interface AuthContextType {
   admin: Admin | null;
@@ -39,26 +38,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        if (token) {
-          const response = await fetch(
-            `${
-              process.env.NEXT_PUBLIC_API_BASE_URL ||
-              "http://localhost:6060/api/v1"
-            }/admin/me`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+        const loggedInAdmin = localStorage.getItem("admin");
+        console.log(token);
+        console.log(loggedInAdmin);
+        if (token && loggedInAdmin) {
+          setAdmin(JSON.parse(loggedInAdmin));
 
-          if (response.ok) {
-            const adminData = await response.json();
-            setAdmin(adminData.admin);
-          } else {
-            localStorage.removeItem("authToken");
-            setAdmin(null);
-          }
+          //   const response = await fetch(
+          //     `${
+          //       process.env.NEXT_PUBLIC_API_BASE_URL ||
+          //       "http://localhost:6060/api/v1"
+          //     }/admin/me`,
+          //     {
+          //       headers: {
+          //         Authorization: `Bearer ${token}`,
+          //       },
+          //     }
+          //   );
+
+          //   if (response.ok) {
+          //     const adminData = await response.json();
+          //     setAdmin(adminData.admin);
+          //   } else {
+          //     localStorage.removeItem("authToken");
+          //     setAdmin(null);
+          //   }
         }
       } catch (error) {
         console.error("Error initializing auth:", error);
@@ -81,6 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (result.success && result.token && result.admin) {
         localStorage.setItem("authToken", result.token);
+        localStorage.setItem("admin", JSON.stringify(result.admin));
         setAdmin(result.admin);
         return result;
       } else {
