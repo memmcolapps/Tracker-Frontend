@@ -3,26 +3,23 @@ import {
   LayoutDashboard,
   Building,
   Smartphone,
-  CreditCard,
   Users,
   BarChart3,
-  FileText,
-  Settings,
   User,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Organizations", href: "/organizations", icon: Building },
   { name: "Devices", href: "/devices", icon: Smartphone },
-  // { name: "SIMs", href: "/sims", icon: CreditCard },
   { name: "Admins", href: "/users", icon: Users },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  // { name: "Reports", href: "/reports", icon: FileText },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { admin } = useAuth();
 
   return (
     <div className="w-64 bg-sidebar-background shadow-lg flex flex-col border-r border-sidebar-border">
@@ -63,9 +60,11 @@ export default function Sidebar() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-sidebar-foreground">
-              John Admin
+              {admin?.email}
             </p>
-            <p className="text-xs text-sidebar-foreground/70">Super Admin</p>
+            <p className="text-xs text-sidebar-foreground/70">
+              {admin?.adminType.toUpperCase()}
+            </p>
           </div>
         </div>
       </div>
