@@ -49,8 +49,8 @@ export default function Organizations() {
   };
 
   const handleEdit = (org: Organization) => {
-    setSelectedOrganization(org);
     setEditModalOpen(true);
+    setSelectedOrganization(org);
   };
 
   const handleDelete = (org: Organization) => {
@@ -207,7 +207,7 @@ export default function Organizations() {
         onSubmit={handleEditOrganization}
         isSubmitting={isSubmitting}
         defaultValues={{
-          name: selectedOrganization?.name || "",
+          name: selectedOrganization?.name || "alani",
           adminPhone: selectedOrganization?.adminPhone || "",
           firstName: selectedOrganization?.users?.[0]?.firstName || "",
           lastName: selectedOrganization?.users?.[0]?.lastName || "",

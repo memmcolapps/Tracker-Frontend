@@ -39,8 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const token = localStorage.getItem("authToken");
         const loggedInAdmin = localStorage.getItem("admin");
-        console.log(token);
-        console.log(loggedInAdmin);
         if (token && loggedInAdmin) {
           setAdmin(JSON.parse(loggedInAdmin));
 

@@ -45,7 +45,12 @@ export function EditOrganizationModal({
           <div className="grid gap-4 py-4">
             <div>
               <Label htmlFor="name">Organization Name</Label>
-              <Input id="name" {...form.register("name")} className="mt-1" />
+              <Input
+                id="name"
+                defaultValue={defaultValues?.name}
+                {...form.register("name")}
+                className="mt-1"
+              />
               {form.formState.errors.name && (
                 <p className="mt-1 text-sm text-red-600">
                   {form.formState.errors.name.message}
@@ -59,6 +64,7 @@ export function EditOrganizationModal({
                   id="adminPhone"
                   {...form.register("adminPhone")}
                   className="mt-1"
+                  defaultValue={defaultValues?.adminPhone}
                 />
                 {form.formState.errors.adminPhone && (
                   <p className="mt-1 text-sm text-red-600">
@@ -75,6 +81,7 @@ export function EditOrganizationModal({
                     id="firstName"
                     placeholder="First name"
                     {...form.register("firstName")}
+                    defaultValue={defaultValues?.firstName}
                   />
                   {form.formState.errors.firstName && (
                     <p className="mt-1 text-sm text-red-600">
@@ -86,6 +93,7 @@ export function EditOrganizationModal({
                   <Input
                     id="lastName"
                     placeholder="Last name"
+                    defaultValue={defaultValues?.lastName}
                     {...form.register("lastName")}
                   />
                   {form.formState.errors.lastName && (

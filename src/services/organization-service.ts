@@ -21,7 +21,6 @@ export const getOrganizationsApi = async (
         search,
       },
     });
-    console.log(response.data.organizations);
     return response.data.organizations;
   } catch (error: unknown) {
     const errorResult = handleApiError(error, "getOrganizations");
