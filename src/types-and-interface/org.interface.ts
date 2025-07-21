@@ -19,6 +19,7 @@ export interface Organization {
   adminEmail: string;
   adminPhone: string;
   noOfDevices: number;
+  logoUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
   users?: User[];
@@ -32,4 +33,12 @@ export interface createOrganizationPayload {
   phone: string;
   adminFirstName: string;
   adminLastName: string;
+}
+
+export interface updateOrganizationPayload {
+  id: string;
+  name?: string;
+  phone?: string;
+  adminFirstName?: string;
+  adminLastName?: string;
 }
