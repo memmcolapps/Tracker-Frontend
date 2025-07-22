@@ -1,12 +1,22 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { StatsCard } from "@/components/ui/stats-card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Upload, Smartphone, Circle, Eye, Pencil, UserPlus, Trash2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import {
+  Plus,
+  Smartphone,
+  Circle,
+  Eye,
+  Pencil,
+  UserPlus,
+  Trash2,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,61 +24,33 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-export interface Device {
-  id: number;
-  label: string;
-  status: string;
-  imei: string;
-  simId: number;
-  lastOnline: Date;
-  organizationId: number;
-}
+import { Device } from "@/types-and-interface/device.interface";
+import { useDevices, useCreateDevice } from "@/hooks/use-Devices";
+import { AddDeviceModal } from "@/components/devices/AddDeviceModal";
 
 export default function Devices() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   const itemsPerPage = 10;
-  // Mock device data
-  const [devices] = useState<Device[]>([
-    {
-      id: 1,
-      label: "Device A",
-      status: "online",
-      imei: "123456789012345",
-      simId: 101,
-      lastOnline: new Date(),
-      organizationId: 1,
-    },
-    {
-      id: 2,
-      label: "Device B",
-      status: "offline",
-      imei: "987654321098765",
-      simId: 0,
-      lastOnline: new Date(Date.now() - 1000 * 60 * 60),
-      organizationId: 1,
-    },
-    {
-      id: 3,
-      label: "Device C",
-      status: "error",
-      imei: "555555555555555",
-      simId: 102,
-      lastOnline: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      organizationId: 0,
-    },
-  ]);
 
-  // Mock analytics data
-  const analytics = {
-    deviceStats: {
-      online: 1,
-      offline: 1,
-      error: 1,
-    },
-  };
+  const { data: devicesData, isLoading } = useDevices(searchTerm);
+  const createDeviceMutation = useCreateDevice();
+  const { mutate: createDevice } = useCreateDevice();
 
-  const isLoading = false;
+  const deviceStats = devicesData?.devices
+    ? {
+        online: devicesData.onlineDevices,
+        offline: devicesData.offlineDevices,
+        error: devicesData.devices.filter((d) => d.status === "error").length,
+      }
+    : {
+        online: 0,
+        offline: 0,
+        error: 0,
+      };
 
   const columns = [
     {
@@ -77,7 +59,7 @@ export default function Devices() {
       render: () => <Checkbox />,
     },
     {
-      key: "label" as keyof Device,
+      key: "name" as keyof Device,
       label: "Device",
       render: (value: string, row: Device) => (
         <div className="flex items-center">
@@ -90,19 +72,42 @@ export default function Devices() {
                 : "bg-red-100"
             }`}
           >
-            <Smartphone
-              className={`w-5 h-5 ${
-                row.status === "online"
-                  ? "text-green-600"
-                  : row.status === "offline"
-                  ? "text-orange-600"
-                  : "text-red-600"
-              }`}
-            />
+            {row.type === "CAR" ? (
+              <svg
+                className={`w-5 h-5 ${
+                  row.status === "online"
+                    ? "text-green-600"
+                    : row.status === "offline"
+                    ? "text-orange-600"
+                    : "text-red-600"
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <rect x="3" y="11" width="18" height="5" rx="2" />
+                <path d="M5 16v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
+                <circle cx="7.5" cy="16.5" r="1.5" />
+                <circle cx="16.5" cy="16.5" r="1.5" />
+              </svg>
+            ) : (
+              <Smartphone
+                className={`w-5 h-5 ${
+                  row.status === "online"
+                    ? "text-green-600"
+                    : row.status === "offline"
+                    ? "text-orange-600"
+                    : "text-red-600"
+                }`}
+              />
+            )}
           </div>
           <div className="ml-4">
             <div className="text-xs font-medium text-gray-900">{value}</div>
-            <div className="text-xs text-gray-500">IMEI: {row.imei}</div>
+            <div className="text-xs text-gray-500">SIM: {row.simNumber}</div>
           </div>
         </div>
       ),
@@ -112,53 +117,50 @@ export default function Devices() {
       label: "Status",
       render: (value: string) => (
         <div className="flex items-center">
-          <Circle
-            className={`w-2 h-2 mr-2 ${
-              value === "online"
-                ? "text-green-500"
-                : value === "offline"
-                ? "text-orange-500"
-                : "text-red-500"
-            }`}
-          />
-          <StatusBadge status={value} />
+          <StatusBadge status={value || "unknown"} />
         </div>
       ),
     },
     {
-      key: "organizationId" as keyof Device,
+      key: "organizationName" as keyof Device,
       label: "Organization",
-      render: (value: number) => (value ? "TechCorp Solutions" : "-"),
+      render: (value: string) => value || "-",
     },
     {
-      key: "simId" as keyof Device,
-      label: "SIM Status",
-      render: (value: number) =>
-        value ? (
-          <StatusBadge status="active" />
-        ) : (
-          <StatusBadge status="inactive" />
-        ),
+      key: "simType" as keyof Device,
+      label: "SIM Type",
+      render: (value: string, row: Device) => (
+        <div className="flex items-center">
+          <StatusBadge status={row.simType} />
+        </div>
+      ),
     },
     {
-      key: "lastOnline" as keyof Device,
+      key: "lastOnlineAt" as keyof Device,
       label: "Last Online",
-      render: (value: Date) => (value ? new Date(value).toLocaleString() : "-"),
+      render: (value: string) =>
+        value ? new Date(value).toLocaleString() : "-",
     },
     {
-      key: "id" as keyof Device,
+      key: "usage" as keyof Device,
       label: "Data Usage",
-      render: () => (
+      render: (value: number, row: Device) => (
         <div>
-          <div className="text-sm text-gray-900">2.4 GB</div>
-          <div className="text-xs text-gray-500">of 10 GB</div>
+          <div className="text-sm text-gray-900">
+            {Math.round(value / 1024 / 1024)} MB
+          </div>
+          {row.usageLimit && (
+            <div className="text-xs text-gray-500">
+              of {Math.round(row.usageLimit.total / 1024 / 1024)} MB
+            </div>
+          )}
         </div>
       ),
     },
     {
       key: "id" as keyof Device,
       label: "Actions",
-      render: (value: number, row: Device) => (
+      render: (value: string, row: Device) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -167,21 +169,39 @@ export default function Devices() {
               className="text-sidebar-foreground focus:outline-none focus:ring-0 hover:bg-transparent hover:text-sidebar-foreground"
               style={{ boxShadow: "none", background: "none" }}
             >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-more-vertical"><circle cx="9" cy="4" r="1"/><circle cx="9" cy="9" r="1"/><circle cx="9" cy="14" r="1"/></svg>
+              <svg
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="feather feather-more-vertical"
+              >
+                <circle cx="9" cy="4" r="1" />
+                <circle cx="9" cy="9" r="1" />
+                <circle cx="9" cy="14" r="1" />
+              </svg>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => alert(`View device ${row.label}`)}>
+            <DropdownMenuItem onSelect={() => alert(`View device ${row.name}`)}>
               <Eye className="w-4 h-4 mr-2" /> View
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => alert(`Edit device ${row.label}`)}>
+            <DropdownMenuItem onSelect={() => alert(`Edit device ${row.name}`)}>
               <Pencil className="w-4 h-4 mr-2" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => alert(`Assign device ${row.label}`)}>
+            <DropdownMenuItem
+              onSelect={() => alert(`Assign device ${row.name}`)}
+            >
               <UserPlus className="w-4 h-4 mr-2" /> Assign
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600" onSelect={() => alert(`Delete device ${row.label}`)}>
+            <DropdownMenuItem
+              className="text-red-600"
+              onSelect={() => alert(`Delete device ${row.name}`)}
+            >
               <Trash2 className="w-4 h-4 mr-2" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -205,18 +225,15 @@ export default function Devices() {
     );
   }
 
-  const deviceStats = analytics?.deviceStats || {
-    online: 0,
-    offline: 0,
-    error: 0,
-  };
   const totalDevices =
     deviceStats.online + deviceStats.offline + deviceStats.error;
 
-  const totalPages = Math.ceil((devices?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil(
+    (devicesData?.devices?.length || 0) / itemsPerPage
+  );
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData =
-    devices?.slice(startIndex, startIndex + itemsPerPage) || [];
+    devicesData?.devices?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   return (
     <div className="p-6">
@@ -227,10 +244,33 @@ export default function Devices() {
             <Upload className="w-4 h-4 mr-2" />
             Bulk Import
           </Button> */}
-          <Button>
+          <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Add Device
           </Button>
+
+          <AddDeviceModal
+            open={addModalOpen}
+            onOpenChange={setAddModalOpen}
+            onSubmit={async (data) => {
+              setIsSubmitting(true);
+              try {
+                await createDeviceMutation.mutateAsync(data, {
+                  onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: ["devices"] });
+                    setAddModalOpen(false);
+                    toast("Device created successfully");
+                  },
+                  onError: (error) => {
+                    toast("Failed to create device");
+                  },
+                });
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </div>
 
@@ -247,12 +287,6 @@ export default function Devices() {
           value={deviceStats.offline}
           icon={Circle}
           iconColor="text-orange-500"
-        />
-        <StatsCard
-          title="Error"
-          value={deviceStats.error}
-          icon={Circle}
-          iconColor="text-red-500"
         />
         <StatsCard
           title="Total"
@@ -288,7 +322,7 @@ export default function Devices() {
           pagination={{
             currentPage,
             totalPages,
-            totalItems: devices?.length || 0,
+            totalItems: devicesData?.devices?.length || 0,
             itemsPerPage,
             onPageChange: setCurrentPage,
           }}
