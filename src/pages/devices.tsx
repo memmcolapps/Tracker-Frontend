@@ -25,20 +25,28 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Device } from "@/types-and-interface/device.interface";
-import { useDevices, useCreateDevice } from "@/hooks/use-Devices";
+import {
+  useDevices,
+  useCreateDevice,
+  useAttachDevice,
+} from "@/hooks/use-Devices";
 import { AddDeviceModal } from "@/components/devices/AddDeviceModal";
+import { AssignDeviceModal } from "@/components/devices/AssignDeviceModal";
+import { AssignDeviceFormData } from "@/schema/device-schemas";
 
 export default function Devices() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const queryClient = useQueryClient();
   const itemsPerPage = 10;
 
   const { data: devicesData, isLoading } = useDevices(searchTerm);
   const createDeviceMutation = useCreateDevice();
-  const { mutate: createDevice } = useCreateDevice();
+  const attachDeviceMutation = useAttachDevice();
 
   const deviceStats = devicesData?.devices
     ? {
@@ -52,9 +60,35 @@ export default function Devices() {
         error: 0,
       };
 
+  const onAttach = (device: Device) => {
+    setSelectedDevice(device);
+    setAssignModalOpen(true);
+  };
+
+  const handleAssignOrganization = async (data: AssignDeviceFormData) => {
+    if (!selectedDevice?.id) return;
+    setIsSubmitting(true);
+    try {
+      await attachDeviceMutation.mutateAsync({
+        deviceId: selectedDevice.id,
+        organizationId: data.organizationId,
+      });
+
+      toast.success("Device assigned successfully");
+      await queryClient.invalidateQueries({ queryKey: ["devices"] });
+      setAssignModalOpen(false);
+      setSelectedDevice(null);
+    } catch (error) {
+      console.error("Error assigning device:", error);
+      toast.error("Failed to assign device");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const columns = [
     {
-      key: "id" as keyof Device,
+      key: "checkbox" as keyof Device,
       label: "",
       render: () => <Checkbox />,
     },
@@ -124,7 +158,11 @@ export default function Devices() {
     {
       key: "organizationName" as keyof Device,
       label: "Organization",
-      render: (value: string) => value || "-",
+      render: (value: string, row: Device) => (
+        <div className="flex items-center">
+          {row?.organizationName || "Unassigned"}
+        </div>
+      ),
     },
     {
       key: "simType" as keyof Device,
@@ -158,7 +196,7 @@ export default function Devices() {
       ),
     },
     {
-      key: "id" as keyof Device,
+      key: "actions" as keyof Device,
       label: "Actions",
       render: (value: string, row: Device) => (
         <DropdownMenu>
@@ -192,9 +230,7 @@ export default function Devices() {
             <DropdownMenuItem onSelect={() => alert(`Edit device ${row.name}`)}>
               <Pencil className="w-4 h-4 mr-2" /> Edit
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => alert(`Assign device ${row.name}`)}
-            >
+            <DropdownMenuItem onSelect={() => onAttach(row)}>
               <UserPlus className="w-4 h-4 mr-2" /> Assign
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -259,10 +295,10 @@ export default function Devices() {
                   onSuccess: () => {
                     queryClient.invalidateQueries({ queryKey: ["devices"] });
                     setAddModalOpen(false);
-                    toast("Device created successfully");
+                    toast.success("Device created successfully");
                   },
                   onError: (error) => {
-                    toast("Failed to create device");
+                    toast.error("Failed to create device");
                   },
                 });
               } finally {
@@ -328,6 +364,12 @@ export default function Devices() {
           }}
         />
       </Card>
+      <AssignDeviceModal
+        open={assignModalOpen}
+        onOpenChange={setAssignModalOpen}
+        onSubmit={handleAssignOrganization}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

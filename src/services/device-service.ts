@@ -63,3 +63,39 @@ export const createDeviceApi = async (
     };
   }
 };
+
+export const attachDeviceApi = async (
+  deviceId: string,
+  token: string,
+  organizationId: string
+): Promise<
+  { success: true; message: string } | { success: false; error: string }
+> => {
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/organization/attachdevice`,
+      {
+        deviceId,
+        organizationId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Failed to attach device");
+    }
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error: unknown) {
+    const errorResult = handleApiError(error, "attachDevice");
+    return {
+      success: false,
+      error: errorResult.error,
+    };
+  }
+};

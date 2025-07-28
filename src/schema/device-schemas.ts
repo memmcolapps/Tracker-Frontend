@@ -9,3 +9,9 @@ export const deviceSchema = z.object({
 });
 
 export type DeviceFormData = z.infer<typeof deviceSchema>;
+
+export const assignDeviceSchema = z.object({
+  organizationId: z.string().min(1, "Organization is required"),
+});
+
+export type AssignDeviceFormData = z.infer<typeof assignDeviceSchema>;
