@@ -2,6 +2,7 @@ import { handleApiError } from "@/error";
 import {
   Device,
   DeviceApiResponse,
+  DevicePayload,
   DevicesData,
 } from "@/types-and-interface/device.interface";
 
@@ -42,7 +43,7 @@ export const getDevicesApi = async (
 
 export const createDeviceApi = async (
   token: string,
-  device: Device
+  device: DevicePayload
 ): Promise<Device | { success: false; error: string }> => {
   try {
     const response = await axios.post(`${BASE_URL}/device/register`, device, {

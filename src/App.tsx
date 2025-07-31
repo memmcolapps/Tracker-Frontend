@@ -15,6 +15,7 @@ import Analytics from "@/pages/analytics";
 import Reports from "@/pages/reports";
 import Login from "@/pages/login";
 import MainLayout from "@/components/layout/main-layout";
+import Locations from "./pages/Locations";
 
 const Router: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const Router: React.FC = () => {
               <Route path="/" component={Dashboard} />
               <Route path="/organizations" component={Organizations} />
               <Route path="/devices" component={Devices} />
+              <Route path="/locations" component={Locations} />
               <Route path="/sims" component={Sims} />
               <Route path="/users" component={Users} />
               <Route path="/analytics" component={Analytics} />

@@ -3,7 +3,11 @@ import {
   createDeviceApi,
   getDevicesApi,
 } from "@/services/device-service";
-import { Device, DevicesData } from "@/types-and-interface/device.interface";
+import {
+  Device,
+  DevicePayload,
+  DevicesData,
+} from "@/types-and-interface/device.interface";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 
@@ -28,7 +32,7 @@ export function useDevices(search?: string) {
 
 export function useCreateDevice() {
   return useMutation({
-    mutationFn: async (device: Device) => {
+    mutationFn: async (device: DevicePayload) => {
       const response = await createDeviceApi(
         localStorage.getItem("authToken") || "",
         device

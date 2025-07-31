@@ -21,19 +21,27 @@ interface UsageLimit {
   alert_threshold: number | null;
 }
 
+export interface DevicePayload {
+  name: string;
+  model: string;
+  simType: string;
+  simNumber: string;
+  type: string;
+}
+
 export interface Device {
   id?: string;
   name: string;
   model: string;
   simType: string;
   simNumber: string;
-  coordinates?: Coordinates;
-  status?: string;
+  coordinates: Coordinates;
+  status: string;
   organizationId?: string;
-  usage?: number;
-  usageLimit?: UsageLimit;
+  usage: number;
+  usageLimit: UsageLimit;
   lastOnlineAt?: string;
-  tags?: string[] | Tag[]; // The example shows tags as stringified JSON, but you might want to parse them into Tag objects
+  tags: string[] | Tag[]; // The example shows tags as stringified JSON, but you might want to parse them into Tag objects
   organizationName?: string;
   type: string;
   createdAt?: string;

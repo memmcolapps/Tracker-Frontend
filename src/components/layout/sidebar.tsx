@@ -6,6 +6,7 @@ import {
   Users,
   BarChart3,
   User,
+  Map,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -13,6 +14,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Organizations", href: "/organizations", icon: Building },
   { name: "Devices", href: "/devices", icon: Smartphone },
+  { name: "Map", href: "/locations", icon: Map },
   { name: "Admins", href: "/users", icon: Users },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
 ];
