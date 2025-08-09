@@ -15,7 +15,7 @@ import Analytics from "@/pages/analytics";
 import Reports from "@/pages/reports";
 import Login from "@/pages/login";
 import MainLayout from "@/components/layout/main-layout";
-import Locations from "./pages/Locations";
+import Locations from "./pages/locations";
 
 const Router: React.FC = () => {
   return (
