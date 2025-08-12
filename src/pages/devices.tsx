@@ -1,299 +1,127 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { DataTable } from "@/components/ui/data-table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { StatsCard } from "@/components/ui/stats-card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Upload, Smartphone, Circle, Eye, Pencil, UserPlus, Trash2 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
-export interface Device {
-  id: number;
-  label: string;
-  status: string;
-  imei: string;
-  simId: number;
-  lastOnline: Date;
-  organizationId: number;
-}
+import { Card } from "@/components/ui/card";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useDevices, useAttachDevice } from "@/hooks/use-Devices";
+import { Device } from "@/types-and-interface/device.interface";
+import { AssignDeviceModal } from "@/components/devices/AssignDeviceModal";
+import { AssignDeviceFormData } from "@/schema/device-schemas";
+import { DeviceStats } from "@/components/devices/DeviceStats";
+import { DeviceActions } from "@/components/devices/DeviceActions";
+import { DeviceTable } from "@/components/devices/DeviceTable";
+import { getDeviceColumns } from "@/components/devices/DeviceTableColumns";
+import { DevicesLoadingSkeleton } from "@/components/devices/DevicesLoadingSkeleton";
+import { ViewdeviceModal } from "@/components/devices/ViewDeviceModal";
 
 export default function Devices() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const queryClient = useQueryClient();
   const itemsPerPage = 10;
-  // Mock device data
-  const [devices] = useState<Device[]>([
-    {
-      id: 1,
-      label: "Device A",
-      status: "online",
-      imei: "123456789012345",
-      simId: 101,
-      lastOnline: new Date(),
-      organizationId: 1,
-    },
-    {
-      id: 2,
-      label: "Device B",
-      status: "offline",
-      imei: "987654321098765",
-      simId: 0,
-      lastOnline: new Date(Date.now() - 1000 * 60 * 60),
-      organizationId: 1,
-    },
-    {
-      id: 3,
-      label: "Device C",
-      status: "error",
-      imei: "555555555555555",
-      simId: 102,
-      lastOnline: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      organizationId: 0,
-    },
-  ]);
 
-  // Mock analytics data
-  const analytics = {
-    deviceStats: {
-      online: 1,
-      offline: 1,
-      error: 1,
-    },
+  const { data: devicesData, isLoading } = useDevices(searchTerm);
+  const attachDeviceMutation = useAttachDevice();
+
+  const deviceStats = devicesData?.devices
+    ? {
+        online: devicesData.onlineDevices,
+        offline: devicesData.offlineDevices,
+        error: devicesData.devices.filter((d) => d.status === "error").length,
+      }
+    : {
+        online: 0,
+        offline: 0,
+        error: 0,
+      };
+
+  const onAttach = (device: Device) => {
+    setSelectedDevice(device);
+    setAssignModalOpen(true);
   };
 
-  const isLoading = false;
+  const handleAssignOrganization = async (data: AssignDeviceFormData) => {
+    if (!selectedDevice?.id) return;
+    setIsSubmitting(true);
+    try {
+      await attachDeviceMutation.mutateAsync({
+        deviceId: selectedDevice.id,
+        organizationId: data.organizationId,
+      });
 
-  const columns = [
-    {
-      key: "id" as keyof Device,
-      label: "",
-      render: () => <Checkbox />,
-    },
-    {
-      key: "label" as keyof Device,
-      label: "Device",
-      render: (value: string, row: Device) => (
-        <div className="flex items-center">
-          <div
-            className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              row.status === "online"
-                ? "bg-green-100"
-                : row.status === "offline"
-                ? "bg-orange-100"
-                : "bg-red-100"
-            }`}
-          >
-            <Smartphone
-              className={`w-5 h-5 ${
-                row.status === "online"
-                  ? "text-green-600"
-                  : row.status === "offline"
-                  ? "text-orange-600"
-                  : "text-red-600"
-              }`}
-            />
-          </div>
-          <div className="ml-4">
-            <div className="text-xs font-medium text-gray-900">{value}</div>
-            <div className="text-xs text-gray-500">IMEI: {row.imei}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "status" as keyof Device,
-      label: "Status",
-      render: (value: string) => (
-        <div className="flex items-center">
-          <Circle
-            className={`w-2 h-2 mr-2 ${
-              value === "online"
-                ? "text-green-500"
-                : value === "offline"
-                ? "text-orange-500"
-                : "text-red-500"
-            }`}
-          />
-          <StatusBadge status={value} />
-        </div>
-      ),
-    },
-    {
-      key: "organizationId" as keyof Device,
-      label: "Organization",
-      render: (value: number) => (value ? "TechCorp Solutions" : "-"),
-    },
-    {
-      key: "simId" as keyof Device,
-      label: "SIM Status",
-      render: (value: number) =>
-        value ? (
-          <StatusBadge status="active" />
-        ) : (
-          <StatusBadge status="inactive" />
-        ),
-    },
-    {
-      key: "lastOnline" as keyof Device,
-      label: "Last Online",
-      render: (value: Date) => (value ? new Date(value).toLocaleString() : "-"),
-    },
-    {
-      key: "id" as keyof Device,
-      label: "Data Usage",
-      render: () => (
-        <div>
-          <div className="text-sm text-gray-900">2.4 GB</div>
-          <div className="text-xs text-gray-500">of 10 GB</div>
-        </div>
-      ),
-    },
-    {
-      key: "id" as keyof Device,
-      label: "Actions",
-      render: (value: number, row: Device) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-sidebar-foreground focus:outline-none focus:ring-0 hover:bg-transparent hover:text-sidebar-foreground"
-              style={{ boxShadow: "none", background: "none" }}
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-more-vertical"><circle cx="9" cy="4" r="1"/><circle cx="9" cy="9" r="1"/><circle cx="9" cy="14" r="1"/></svg>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => alert(`View device ${row.label}`)}>
-              <Eye className="w-4 h-4 mr-2" /> View
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => alert(`Edit device ${row.label}`)}>
-              <Pencil className="w-4 h-4 mr-2" /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => alert(`Assign device ${row.label}`)}>
-              <UserPlus className="w-4 h-4 mr-2" /> Assign
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600" onSelect={() => alert(`Delete device ${row.label}`)}>
-              <Trash2 className="w-4 h-4 mr-2" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
+      toast.success("Device assigned successfully");
+      await queryClient.invalidateQueries({ queryKey: ["devices"] });
+      setAssignModalOpen(false);
+      setSelectedDevice(null);
+    } catch (error) {
+      console.error("Error assigning device:", error);
+      toast.error("Failed to assign device");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onViewDevice = (device: Device) => {
+    console.log("View device:", device);
+    setSelectedDevice(device);
+    setViewModalOpen(true);
+  };
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <DevicesLoadingSkeleton />;
   }
 
-  const deviceStats = analytics?.deviceStats || {
-    online: 0,
-    offline: 0,
-    error: 0,
-  };
   const totalDevices =
     deviceStats.online + deviceStats.offline + deviceStats.error;
 
-  const totalPages = Math.ceil((devices?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil(
+    (devicesData?.devices?.length || 0) / itemsPerPage
+  );
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData =
-    devices?.slice(startIndex, startIndex + itemsPerPage) || [];
+    devicesData?.devices?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-semibold text-gray-800">Devices</h3>
-        <div className="flex items-center space-x-3">
-          {/* <Button variant="secondary">
-            <Upload className="w-4 h-4 mr-2" />
-            Bulk Import
-          </Button> */}
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Device
-          </Button>
-        </div>
+        <DeviceActions onAddDevice={() => {}} />
       </div>
 
-      {/* Device Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatsCard
-          title="Online"
-          value={deviceStats.online}
-          icon={Circle}
-          iconColor="text-green-500"
-        />
-        <StatsCard
-          title="Offline"
-          value={deviceStats.offline}
-          icon={Circle}
-          iconColor="text-orange-500"
-        />
-        <StatsCard
-          title="Error"
-          value={deviceStats.error}
-          icon={Circle}
-          iconColor="text-red-500"
-        />
-        <StatsCard
-          title="Total"
-          value={totalDevices}
-          icon={Smartphone}
-          iconColor="text-gray-600"
-        />
-      </div>
+      <DeviceStats
+        online={deviceStats.online}
+        offline={deviceStats.offline}
+        total={totalDevices}
+      />
 
-      {/* Devices Table */}
       <Card>
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox />
-                <span className="text-sm text-gray-600">Select All</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm">
-                Export
-              </Button>
-              <Button variant="ghost" size="sm">
-                Filter
-              </Button>
-            </div>
-          </div>
-        </div>
-        <DataTable
+        <DeviceTable
           data={paginatedData}
-          columns={columns}
-          pagination={{
-            currentPage,
-            totalPages,
-            totalItems: devices?.length || 0,
-            itemsPerPage,
-            onPageChange: setCurrentPage,
-          }}
+          columns={getDeviceColumns(onAttach, onViewDevice)}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={devicesData?.devices?.length || 0}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
         />
       </Card>
+
+      <AssignDeviceModal
+        open={assignModalOpen}
+        onOpenChange={setAssignModalOpen}
+        onSubmit={handleAssignOrganization}
+        isSubmitting={isSubmitting}
+      />
+      {selectedDevice && (
+        <ViewdeviceModal
+          open={viewModalOpen}
+          onOpenChange={setViewModalOpen}
+          device={selectedDevice}
+        />
+      )}
     </div>
   );
 }

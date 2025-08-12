@@ -1,175 +1,137 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { DataTable } from "@/components/ui/data-table";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DataTable } from "@/components/ui/data-table";
+import { Organization } from "@/types-and-interface/org.interface";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Plus, Building, Upload } from "lucide-react";
-
-export interface Organization {
-  id: number;
-  name: string;
-  email: string;
-  status: string;
-  createdAt: Date;
-  lastActive: Date;
-}
+  useOrganizations,
+  useCreateOrganization,
+  useUpdateOrganization,
+  useDeleteOrganization,
+} from "@/hooks/use-Organization";
+import {
+  OrganizationFormData,
+  EditOrganizationFormData,
+} from "@/schema/organization-schemas";
+import { OrganizationsLoadingSkeleton } from "@/components/organizations/OrganizationsLoadingSkeleton";
+import { getOrganizationColumns } from "@/components/organizations/OrganizationColumns";
+import { AddOrganizationModal } from "@/components/organizations/AddOrganizationModal";
+import { ViewOrganizationModal } from "@/components/organizations/ViewOrganizationModal";
+import { EditOrganizationModal } from "@/components/organizations/EditOrganizationModal";
+import { DeleteOrganizationModal } from "@/components/organizations/DeleteOrganizationModal";
 
 export default function Organizations() {
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 10;
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
-  // Mock data for organizations
-  const [organizations] = useState<Organization[]>([
-    {
-      id: 1,
-      name: "Nigeria Police",
-      email: "npf@acme.com",
-      status: "active",
-      createdAt: new Date("2023-01-15"),
-      lastActive: new Date("2024-06-01"),
-    },
-    {
-      id: 2,
-      name: "Nigeira Army",
-      email: "migeriaarmedforce@nfa.com",
-      status: "inactive",
-      createdAt: new Date("2022-11-10"),
-      lastActive: new Date("2024-05-20"),
-    },
-    {
-      id: 3,
-      name: "Nigeria customs",
-      email: "npcf@acme.com",
-      status: "suspended",
-      createdAt: new Date("2023-03-05"),
-      lastActive: new Date("2024-04-18"),
-    },
-    {
-      id: 4,
-      name: "Nigeira Navy",
-      email: "nigeiranavy@nfa.com",
-      status: "active",
-      createdAt: new Date("2023-02-22"),
-      lastActive: new Date("2024-06-02"),
-    },
-    {
-      id: 5,
-      name: "Nigeria Air Force",
-      email: "nigeriaairforce@nfa.com",
-      status: "active",
-      createdAt: new Date("2023-05-30"),
-      lastActive: new Date("2024-06-03"),
-    },
-  ]);
-  const isLoading = false;
+  const { data: organizations, isLoading } = useOrganizations(searchTerm);
+  const { mutate: createOrganization } = useCreateOrganization();
+  const updateMutation = useUpdateOrganization();
+  const deleteMutation = useDeleteOrganization();
 
-  const columns = [
-    {
-      key: "name" as keyof Organization,
-      label: "Organization",
-      render: (value: string, row: Organization) => (
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Building className="w-5 h-5 text-primary" />
-          </div>
-          <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{value}</div>
-            <div className="text-sm text-gray-500">{row.email}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "status" as keyof Organization,
-      label: "Status",
-      render: (value: string) => <StatusBadge status={value} />,
-    },
-    {
-      key: "id" as keyof Organization,
-      label: "Devices",
-      render: () => (
-        <div>
-          <div className="text-sm font-medium text-gray-900">247</div>
-          <div className="text-sm text-gray-500">devices</div>
-        </div>
-      ),
-    },
-    {
-      key: "id" as keyof Organization,
-      label: "Users",
-      render: () => (
-        <div>
-          <div className="text-sm font-medium text-gray-900">18</div>
-          <div className="text-sm text-gray-500">users</div>
-        </div>
-      ),
-    },
-    {
-      key: "createdAt" as keyof Organization,
-      label: "Created",
-      render: (value: Date) =>
-        value ? new Date(value).toLocaleDateString() : "-",
-    },
-    {
-      key: "lastActive" as keyof Organization,
-      label: "Last Active",
-      render: (value: Date) =>
-        value ? new Date(value).toLocaleDateString() : "-",
-    },
-    {
-      key: "id" as keyof Organization,
-      label: "Actions",
-      render: () => (
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:text-blue-700"
-          >
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-orange-600 hover:text-orange-700"
-          >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700"
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  const handleView = (org: Organization) => {
+    setSelectedOrganization(org);
+    setViewModalOpen(true);
+  };
+
+  const handleEdit = (org: Organization) => {
+    setSelectedOrganization(org);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = (org: Organization) => {
+    setSelectedOrganization(org);
+    setDeleteModalOpen(true);
+  };
+
+  const handleCreateOrganization = (data: OrganizationFormData) => {
+    setIsSubmitting(true);
+    createOrganization(
+      {
+        name: data.name,
+        email: data.adminEmail,
+        phone: data.adminPhone,
+        password: data.password,
+        adminFirstName: data.firstName,
+        adminLastName: data.lastName,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Organization created successfully");
+          queryClient.invalidateQueries().then(() => {
+            setAddModalOpen(false);
+          });
+        },
+        onError: (error) => {
+          toast.error("Failed to create organization");
+          console.error("Error creating organization:", error);
+        },
+        onSettled: () => {
+          setIsSubmitting(false);
+        },
+      }
+    );
+  };
+
+  const handleEditOrganization = async (data: EditOrganizationFormData) => {
+    if (!selectedOrganization?.id) return;
+    setIsSubmitting(true);
+    try {
+      await updateMutation.mutateAsync({
+        id: selectedOrganization.id,
+        name: data.name,
+        phone: data.adminPhone,
+        adminFirstName: data.firstName,
+        adminLastName: data.lastName,
+      });
+      toast.success("Organization updated successfully");
+      await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      setSelectedOrganization(null);
+      setEditModalOpen(false);
+    } catch (error) {
+      console.error("Error updating organization:", error);
+      toast.error("Failed to update organization");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteOrganization = async () => {
+    if (!selectedOrganization?.id) return;
+    try {
+      await deleteMutation.mutateAsync(selectedOrganization.id);
+      toast.success("Organization deleted successfully");
+      await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      setDeleteModalOpen(false);
+      setSelectedOrganization(null);
+    } catch (error) {
+      console.error("Error deleting organization:", error);
+      toast.error("Failed to delete organization");
+    }
+  };
+
+  const columns = getOrganizationColumns({
+    onView: handleView,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
 
   if (isLoading) {
-    return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-48 mb-6"></div>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <OrganizationsLoadingSkeleton />;
   }
 
   const totalPages = Math.ceil((organizations?.length || 0) / itemsPerPage);
@@ -181,7 +143,7 @@ export default function Organizations() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-800">Organizations</h3>
-        <Button>
+        <Button onClick={() => setAddModalOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Add Organization
         </Button>
@@ -193,59 +155,20 @@ export default function Organizations() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <Label
-                htmlFor="status"
-                className="text-sm font-medium text-gray-700"
-              >
-                Status
-              </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label
-                htmlFor="date"
-                className="text-sm font-medium text-gray-700"
-              >
-                Created Date
-              </Label>
-              <Input type="date" />
-            </div>
-            <div>
-              <Label
-                htmlFor="devices"
-                className="text-sm font-medium text-gray-700"
-              >
-                Device Count
-              </Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="1-10">1-10</SelectItem>
-                  <SelectItem value="11-50">11-50</SelectItem>
-                  <SelectItem value="51+">51+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label
                 htmlFor="search"
                 className="text-sm font-medium text-gray-700"
               >
                 Search
               </Label>
-              <Input type="text" placeholder="Search organizations..." />
+              <Input
+                type="text"
+                placeholder="Search organizations by Organization Name..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
             </div>
           </div>
         </CardContent>
@@ -262,6 +185,45 @@ export default function Organizations() {
           itemsPerPage,
           onPageChange: setCurrentPage,
         }}
+      />
+
+      {/* Modals */}
+      <AddOrganizationModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        onSubmit={handleCreateOrganization}
+        isSubmitting={isSubmitting}
+      />
+
+      <ViewOrganizationModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        organization={selectedOrganization}
+      />
+
+      <EditOrganizationModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSubmit={handleEditOrganization}
+        isSubmitting={isSubmitting}
+        defaultValues={
+          selectedOrganization
+            ? {
+                name: selectedOrganization.name,
+                adminPhone: selectedOrganization.adminPhone,
+                firstName: selectedOrganization.users?.[0]?.firstName || "",
+                lastName: selectedOrganization.users?.[0]?.lastName || "",
+              }
+            : undefined
+        }
+      />
+
+      <DeleteOrganizationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        organization={selectedOrganization}
+        onConfirm={handleDeleteOrganization}
+        isDeleting={deleteMutation.isPending}
       />
     </div>
   );
