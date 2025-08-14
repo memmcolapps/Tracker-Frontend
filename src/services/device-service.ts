@@ -7,8 +7,7 @@ import {
 } from "@/types-and-interface/device.interface";
 
 import axios, { type AxiosError } from "axios";
-
-const BASE_URL = "http://localhost:6060/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL_PRODUCTION;
 
 export const getDevicesApi = async (
   token: string,
