@@ -27,4 +27,17 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
+  server: {
+    proxy: {
+      // Proxy API requests to avoid CORS
+      "/api": {
+        target:
+          process.env.VITE_API_BASE_URL_PRODUCTION ||
+          "http://your-api-base-url.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+        secure: false, // Only if you're using self-signed certificates
+      },
+    },
+  },
 });
