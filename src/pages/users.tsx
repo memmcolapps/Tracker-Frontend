@@ -1,131 +1,53 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { Plus, User } from "lucide-react";
-
-export interface UserType {
-  id: number;
-  username: string;
-  fullName: string;
-  email: string;
-  role: string;
-  organizationId: number;
-  status: string;
-  lastLogin: Date | null;
-}
+import { Plus } from "lucide-react";
+import { useAdmins } from "@/hooks/use-Admins";
+import { Admin } from "@/types-and-interface/auth.interface";
 
 export default function Users() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { data, isLoading, error } = useAdmins();
 
-  // Mock user data for development/testing
-  const [users] = useState<UserType[]>([
-    {
-      id: 1,
-      username: "jdoe",
-      fullName: "John Doe",
-      email: "jdoe@example.com",
-      role: "admin",
-      organizationId: 1,
-      status: "active",
-      lastLogin: new Date(),
-    },
-    {
-      id: 2,
-      username: "asmith",
-      fullName: "Alice Smith",
-      email: "asmith@example.com",
-      role: "user",
-      organizationId: 1,
-      status: "inactive",
-      lastLogin: null,
-    },
-    {
-      id: 3,
-      username: "superadmin",
-      fullName: "Super Admin",
-      email: "superadmin@example.com",
-      role: "super_admin",
-      organizationId: 1,
-      status: "active",
-      lastLogin: new Date(),
-    },
-  ]);
-  const isLoading = false;
+  if (error) {
+    return <div className="p-6">Error: {(error as Error).message}</div>;
+  }
+  if (data && "success" in data && !data.success) {
+    return <div className="p-6">Error: {data.error}</div>;
+  }
+
+  // Only show admins if data is an array
+  const admins = Array.isArray(data) ? data : [];
 
   const columns = [
     {
-      key: "username" as keyof UserType,
-      label: "User",
-      render: (value: string, row: UserType) => (
-        <div className="flex items-center">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              row.role === "super_admin"
-                ? "bg-red-100"
-                : row.role === "admin"
-                ? "bg-orange-100"
-                : "bg-blue-100"
-            }`}
-          >
-            <User
-              className={`w-5 h-5 ${
-                row.role === "super_admin"
-                  ? "text-red-600"
-                  : row.role === "admin"
-                  ? "text-orange-600"
-                  : "text-blue-600"
-              }`}
-            />
-          </div>
-          <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">
-              {row.fullName || value}
-            </div>
-            <div className="text-sm text-gray-500">{value}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "email" as keyof UserType,
+      key: "email" as keyof Admin,
       label: "Email",
-      render: (value: string) => (
-        <div className="text-sm text-gray-900">{value}</div>
+      render: (value: string, row: Admin) => (
+        <div className="text-sm text-gray-900">{row.email}</div>
       ),
     },
     {
-      key: "role" as keyof UserType,
-      label: "Role",
-      render: (value: string) => <StatusBadge status={value} />,
+      key: "adminType" as keyof Admin,
+      label: "Type",
+      render: (value: string, row: Admin) => (
+        <span className="px-2 py-1 rounded bg-gray-100 text-xs text-gray-700">
+          {row.adminType}
+        </span>
+      ),
     },
     {
-      key: "organizationId" as keyof UserType,
-      label: "Organization",
-      render: (value: number) => (
+      key: "createdAt" as keyof Admin,
+      label: "Date Added",
+      render: (value: string, row: Admin) => (
         <div className="text-sm text-gray-900">
-          {value ? "TechCorp Solutions" : "-"}
+          {row.createdAt ? new Date(row.createdAt).toDateString() : "N/A"}
         </div>
       ),
     },
     {
-      key: "status" as keyof UserType,
-      label: "Status",
-      render: (value: string) => <StatusBadge status={value} />,
-    },
-    {
-      key: "lastLogin" as keyof UserType,
-      label: "Last Login",
-      render: (value: Date) => (
-        <div className="text-sm text-gray-900">
-          {value ? new Date(value).toLocaleString() : "Never"}
-        </div>
-      ),
-    },
-    {
-      key: "id" as keyof UserType,
+      key: "id" as keyof Admin,
       label: "Actions",
       render: () => (
         <div className="flex items-center space-x-2">
@@ -142,13 +64,6 @@ export default function Users() {
             className="text-orange-600 hover:text-orange-700"
           >
             Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-gray-600 hover:text-gray-700"
-          >
-            Reset
           </Button>
         </div>
       ),
@@ -170,18 +85,18 @@ export default function Users() {
     );
   }
 
-  const totalPages = Math.ceil((users?.length || 0) / itemsPerPage);
+  const totalPages = Math.ceil((admins?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData =
-    users?.slice(startIndex, startIndex + itemsPerPage) || [];
+    admins?.slice(startIndex, startIndex + itemsPerPage) || [];
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Users</h3>
+        <h3 className="text-xl font-semibold text-gray-800">Admins</h3>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
-          Add User
+          Add Admin
         </Button>
       </div>
 
@@ -191,7 +106,7 @@ export default function Users() {
         pagination={{
           currentPage,
           totalPages,
-          totalItems: users?.length || 0,
+          totalItems: admins?.length || 0,
           itemsPerPage,
           onPageChange: setCurrentPage,
         }}
