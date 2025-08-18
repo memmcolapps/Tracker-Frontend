@@ -17,7 +17,6 @@ export default function Users() {
     return <div className="p-6">Error: {data.error}</div>;
   }
 
-  // Only show admins if data is an array
   const admins = Array.isArray(data) ? data : [];
 
   const columns = [

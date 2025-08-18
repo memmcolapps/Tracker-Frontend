@@ -37,3 +37,30 @@ export const getAdminsApi = async (
     };
   }
 };
+
+export const createAdminApi = async (
+  token: string,
+  adminData: Omit<Admins, "id" | "createdAt" | "updatedAt">
+): Promise<Admins | { success: false; error: string }> => {
+  try {
+    const response = await axios.post(`${BASE_URL}/admin/create`, adminData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.data.success) {
+      return {
+        success: false,
+        error: response.data.error,
+      };
+    }
+    console.log("Created admin:", response.data.admin);
+    return response.data.admin;
+  } catch (error: unknown) {
+    const errorResult = handleApiError(error, "createAdmin");
+    return {
+      success: false,
+      error: errorResult.error,
+    };
+  }
+};

@@ -1,5 +1,9 @@
-import { getAdminsApi } from "@/services/admins-service";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Admins,
+  createAdminApi,
+  getAdminsApi,
+} from "@/services/admins-service";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 
 export function useAdmins() {
@@ -16,5 +20,22 @@ export function useAdmins() {
       return response;
     },
     enabled: isAuthenticated,
+  });
+}
+
+export function useCreateAdmin() {
+  return useMutation({
+    mutationFn: async (
+      adminData: Omit<Admins, "id" | "createdAt" | "updatedAt">
+    ) => {
+      const response = await createAdminApi(
+        localStorage.getItem("authToken") || "",
+        adminData
+      );
+      if ("success" in response && !response.success) {
+        throw new Error(response.error);
+      }
+      return response;
+    },
   });
 }
